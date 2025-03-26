@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.urls import reverse
-from django.http import HttpResponse,HttpResponseNotFound,HttpResponseRedirect
+from django.template.loader import render_to_string
+from django.http import Http404,HttpResponseNotFound,HttpResponseRedirect
 # Create your views here.
 
 months_dict = {
@@ -21,7 +22,12 @@ months_dict = {
 def resToMonth(request,month):
     try:
         monthData = months_dict[month]
-        return HttpResponse(monthData)
+        return render(request, "challenges/challenge.html",{
+            "description": monthData,
+            "title": month.capitalize()
+        })
+        # renderData = render_to_string("challenges/challenge.html")
+        # return HttpResponse(renderData)
     except:
         return HttpResponseNotFound("No Existing Month")
     
@@ -30,19 +36,17 @@ def resToMonthNum(request, month):
     print(months)
     try:
         redirectMonth = months[month-1]
-        redirectPath = reverse("month-challege",args=[redirectMonth]) #/challenge/<month>
+        redirectPath = reverse("month-challenge",args=[redirectMonth]) #/challenge/<month>
         # redirectPath = "/month/" + redirectMonth
         return HttpResponseRedirect(redirectPath)
     except:
-        return HttpResponseNotFound("No Existing Month")
+        # html = render_to_string("404.html")
+        # return HttpResponseNotFound(html)
+        return Http404()
     
 
 def index(request):
     months = list(months_dict.keys())
-    startText = "<ul>"
-    for month in months:
-        redirectPath = reverse("month-challege",args=[month]) #/challenge/<month>
-        text = f'<li><a href="{redirectPath}">{month}</a></li>'
-        startText+=text
-    startText+="</ul>"
-    return HttpResponse(startText)
+    return render(request,"challenges/index.html",{
+        "months":months
+    })

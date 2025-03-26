@@ -6,6 +6,8 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>This Month's Challenge</h1>
+    {% include 'challenges/includes/nav.html' with active_page="challenge" %}
+    <h1>{{title | title}} Challenge</h1>
+    <p>{{description}}</p>
 </body>
 </html>
