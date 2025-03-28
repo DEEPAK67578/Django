@@ -5,9 +5,10 @@ import json
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import Dummy
+from rest_framework import generics
 from .serializer import DummySerializer
 from django.shortcuts import get_object_or_404
-
+from rest_framework import mixins,permissions,authentication
 # Create your views here.
 
 
@@ -23,7 +24,7 @@ def api_home(request):
     print(jsondata)
     return JsonResponse(data)
 
-
+#docorator view
 @api_view(["GET", "POST"])
 def descoratorAPIVIEW(request): #Too much work,so using serializer
     if request.method == "GET":
@@ -88,3 +89,47 @@ def decoratorAPIViewV2(request):
                return Response({"Provide the ID to Delete"})
 
 #Generic Views
+class DummyCreateGenericVIew(generics.CreateAPIView):
+    serializer_class = DummySerializer
+    queryset = Dummy.objects.all()
+    lookup_field = "pk"
+
+
+    def perform_create(self, serializer):
+        content = serializer.validated_data.get("content")
+        if content is None:
+            content = serializer.validated_data.get("title")
+        serializer.save(content = content)
+
+class DummyRetrieveGenericView(generics.RetrieveAPIView):
+    serializer_class = DummySerializer
+    queryset = Dummy.objects.all()
+    lookup_field = "pk"
+
+class DummyListGenericView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.SessionAuthentication]
+    serializer_class = DummySerializer
+    queryset = Dummy.objects.all()
+    lookup_field = "pk"
+
+class DummyUpdateGenericView(generics.UpdateAPIView):
+    serializer_class = DummySerializer
+    queryset = Dummy.objects.all()
+    lookup_field = "pk"
+
+class DummyDeleteGenericView(generics.DestroyAPIView):
+    serializer_class = DummySerializer
+    queryset = Dummy.objects.all()
+    lookup_field = "pk"
+
+class CustomGenericView(generics.GenericAPIView,mixins.ListModelMixin,mixins.RetrieveModelMixin):
+    serializer_class = DummySerializer
+    queryset = Dummy.objects.all()
+    lookup_field = "pk"
+
+    def get(self,request,*args,**kwargs):
+       if(kwargs.get("pk")):
+           return self.retrieve(request,*args,**kwargs)
+       else:
+          return self.list(request,*args,**kwargs)
